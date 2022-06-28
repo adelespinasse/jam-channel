@@ -18,4 +18,7 @@ body {
   button {
     @apply bg-teal-800 text-white hover:bg-teal-600 font-bold pt-1.5 pb-1 px-3 rounded;
   }
+  a {
+    @apply text-teal-900 underline visited:text-teal-700;
+  }
 }

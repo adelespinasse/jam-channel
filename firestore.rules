@@ -2,10 +2,19 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     match /channels/{channel} {
-      allow create: if true;
-      
-      match /notes/{noteId} {
-      	allow read, write: if true;
+
+      // Anyone (if authed; we use anonymous auth) can create a new channel,
+      // assuming they play by the rules and save their UID and creation time.
+      // But no one can find or read an existing channel unless the creator shares
+      // it with them.
+      allow create: if request.auth != null
+        && request.resource.data.createdBy == request.auth.uid
+        && request.resource.data.createdAt == request.time;
+
+      // Anyone (if authed) can read/write any subcollection if the channel exists.
+      match /{subcoll}/{anything=**} {
+      	allow read, write: if request.auth != null
+          && exists(/databases/$(database)/documents/channels/$(channel));
       }
     }
   }

@@ -14,8 +14,9 @@ export default function HomePage() {
 
   const newChannel = async () => {
     const docRef = await addDoc(collection(db, "channels"), {
+      // These properties are required by the security rules.
       createdAt: serverTimestamp(),
-      createdBy: user?.uid || 'unknown',
+      createdBy: user?.uid,
     });
     navigate(`/${docRef.id}`);
   };
