@@ -1,10 +1,11 @@
 import React from 'react';
-import { collection, addDoc, serverTimestamp  } from "firebase/firestore";
+import { collection, addDoc, doc, serverTimestamp, setDoc  } from "firebase/firestore";
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { useNavigate } from 'react-router-dom';
 import { getAuth } from 'firebase/auth';
 
 import { db } from './fb';
+import { defaultChannelSettings } from './types';
 
 const auth = getAuth();
 
@@ -13,11 +14,18 @@ export default function HomePage() {
   const navigate = useNavigate();
 
   const newChannel = async () => {
-    const docRef = await addDoc(collection(db, "channels"), {
-      // These properties are required by the security rules.
-      createdAt: serverTimestamp(),
-      createdBy: user?.uid,
-    });
+    const docRef = await addDoc(
+      collection(db, "channels"),
+      {
+        // These properties are required by the security rules.
+        createdAt: serverTimestamp(),
+        createdBy: user?.uid,
+      },
+    );
+    await setDoc(
+      doc(db, `channels/${docRef.id}/misc/settings`),
+      defaultChannelSettings,
+    );
     navigate(`/${docRef.id}`);
   };
 

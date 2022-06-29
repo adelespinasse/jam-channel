@@ -1,14 +1,12 @@
-import React, { useEffect, useMemo } from 'react'
+import React, { ChangeEvent, useEffect, useMemo, useRef } from 'react'
 import { Link, useParams } from 'react-router-dom';
-import { useCollection } from 'react-firebase-hooks/firestore';
-import { collection, deleteField, doc, setDoc } from "firebase/firestore";
+import { useCollection, useDocumentData } from 'react-firebase-hooks/firestore';
+import { collection, deleteField, doc, DocumentReference, setDoc } from "firebase/firestore";
 
 import './App.css';
 import { db } from './fb';
 import { Player } from './player';
-
-type NoteProperties = {};
-type TimeSlice = { [instrument: string]: NoteProperties };
+import { ChannelSettings, defaultChannelSettings, TimeSlice } from './types';
 
 const instruments: Array<string> = [
   'A',
@@ -22,8 +20,6 @@ const instruments: Array<string> = [
   'I',
   'J',
 ];
-
-const clicksInScore = 32;
 
 function idForTimeIndex(timeIndex: number) {
   return String(timeIndex).padStart(5, '00000');
@@ -79,11 +75,16 @@ function Rest({ channelId, instrument, timeIndex }: NoteProps) {
 
 export default function ChannelPage() {
   const channelId: string = useParams().channelId!;
+  const settingsRef = doc(db, `channels/${channelId}/misc/settings`) as DocumentReference<ChannelSettings>;
+  const [channelSettings, settingsLoading, settingsError] = useDocumentData<Partial<ChannelSettings>>(
+    settingsRef,
+  );
   const [timeSlices, loading, error] = useCollection<TimeSlice>(collection(db, `channels/${channelId}/score`));
   const player = useMemo(() => (new Player(instruments)), []);
   useEffect(() => () => { player.dispose() }, [player]);
+  const currentHeader = useRef<HTMLElement>();
 
-  if (error) {
+  if (error || settingsError) {
     return (
       <div className="text-center">
         <h2>Channel not found</h2>
@@ -91,7 +92,7 @@ export default function ChannelPage() {
       </div>
     );
   }
-  if (loading || !timeSlices) {
+  if (loading || !timeSlices || settingsLoading) {
     return (
       <div className="text-center">
         <h2>Loading...</h2>
@@ -99,14 +100,46 @@ export default function ChannelPage() {
     );
   }
 
-  const score: Array<TimeSlice | null> = new Array(clicksInScore);
+  const {
+    beatsPerMinute,
+    ticksPerBeat,
+    beatsPerMeasure,
+    numMeasures,
+  } = { ...defaultChannelSettings, ...channelSettings };
+  const ticksInScore = ticksPerBeat * beatsPerMeasure * numMeasures;
+  const tickDuration = 60 / beatsPerMinute / ticksPerBeat;
+  const score: Array<TimeSlice | null> = new Array(ticksInScore);
   score.fill(null);
   for (const timeSlice of timeSlices.docs) {
     const index = Number(timeSlice.id);
-    if (index < clicksInScore)
+    if (index < ticksInScore)
       score[index] = timeSlice.data();
   }
   player.score = score;
+  player.tickDuration = tickDuration;
+
+  player.timeCallback = (timeIndex: number, timeSlice: TimeSlice | null) => {
+    if (currentHeader.current) {
+      currentHeader.current.classList.remove('current');
+    }
+    const header = document.getElementById(`header-${timeIndex}`);
+    if (header) {
+      header.classList.add('current');
+      currentHeader.current = header;
+    }
+    if (timeSlice) {
+      for (const instrument in timeSlice) {
+        const el = document.getElementById(`${instrument}-${timeIndex}`);
+        if (el) {
+          el.style.animationName = 'hit';
+          setTimeout(
+            () => { el.style.animationName = ''; },
+            600,
+          );
+        }
+      }
+    }
+  };
 
   const noteOrRest = (timeSlice: TimeSlice | null, instrument: string, timeIndex: number) => {
     const noteProps = timeSlice?.[instrument];
@@ -120,15 +153,62 @@ export default function ChannelPage() {
     );
   };
 
+  const setSetting = (settingName: string) => (event: ChangeEvent<HTMLInputElement>) => {
+    setDoc(
+      settingsRef,
+      { [settingName]: Number(event.target.value) },
+      { merge: true },
+    );
+  };
+
   return (
     <div>
       <h2>
         <Link to="/">Home</Link>
         <button onClick={() => player.play()}>Play</button>
         <button onClick={() => player.pause()}>Pause</button>
+        Beats per minute:
+        <input
+          type="number"
+          min={40}
+          max={300}
+          value={beatsPerMinute}
+          onChange={setSetting('beatsPerMinute')}
+        />
+        Ticks per beat:
+        <input
+          type="number"
+          min={1}
+          max={6}
+          value={ticksPerBeat}
+          onChange={setSetting('ticksPerBeat')}
+        />
+        Beats per bar:
+        <input
+          type="number"
+          min={2}
+          max={7}
+          value={beatsPerMeasure}
+          onChange={setSetting('beatsPerMeasure')}
+        />
+        # Bars:
+        <input
+          type="number"
+          min={1}
+          max={8}
+          value={numMeasures}
+          onChange={setSetting('numMeasures')}
+        />
       </h2>
       <table className="score">
         <tbody>
+          <tr>
+            { score.map((timeSlice, timeIndex) => (
+              <th key={timeIndex} id={`header-${timeIndex}`} className="column-header">
+                ▼
+              </th>
+            ))}
+          </tr>
           { instruments.map((instrument) => (
             <tr key={instrument}>
               { score.map((timeSlice, timeIndex) => (

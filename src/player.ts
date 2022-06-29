@@ -1,14 +1,14 @@
-export type NoteProperties = {};
-export type TimeSlice = { [instrument: string]: NoteProperties };
+import { TimeSlice } from './types';
 
 const extraLatency = 0.2;
 
 export class Player {
   score: Array<TimeSlice | null>;
+  timeCallback?: (timeIndex: number, timeSlice: TimeSlice | null) => any;
   #audioContext?: AudioContext;
-  #nextClickTime: number;
-  #nextClick: number;
-  clickDuration: number;
+  #nextTickTime: number;
+  #nextTick: number;
+  tickDuration: number;
   #instruments: { [name: string]: AudioBuffer };
   #instrumentBuffers: { [name: string]: Promise<ArrayBuffer> };
   #timer: number;
@@ -16,9 +16,9 @@ export class Player {
   constructor(instruments: Array<string>) {
     console.log('Player constructor');
     this.score = [{}];
-    this.#nextClickTime = 0;
-    this.#nextClick = 0;
-    this.clickDuration = 60/400;
+    this.#nextTickTime = 0;
+    this.#nextTick = 0;
+    this.tickDuration = 60/440;
     this.#instruments = {};
     this.#instrumentBuffers = {};
     for (const instrName of instruments) {
@@ -48,10 +48,10 @@ export class Player {
   async play() {
     await this.#init();
     console.log(this.#audioContext!.currentTime);
-    this.#nextClickTime = this.#audioContext!.currentTime + extraLatency;
-    console.log(this.#nextClickTime);
-    console.log(this.score[this.#nextClick]);
-    this.#playNextClick();
+    this.#nextTickTime = this.#audioContext!.currentTime + extraLatency;
+    console.log(this.#nextTickTime);
+    console.log(this.score[this.#nextTick]);
+    this.#playNextTick();
   }
 
   pause() {
@@ -68,27 +68,36 @@ export class Player {
     this.#audioContext?.close();
   }
 
-  #playNextClick() {
-    const timeSlice = this.score[this.#nextClick];
+  #playNextTick() {
+    const timeSlice = this.score[this.#nextTick];
+    if (this.timeCallback) {
+      const nextTick = this.#nextTick;
+      const latency = this.#audioContext!.baseLatency
+        + (this.#nextTickTime - this.#audioContext!.currentTime);
+      setTimeout(
+        () => { this.timeCallback!(nextTick, timeSlice); },
+        1000 * latency,
+      );
+    }
     if (timeSlice) {
       for (const instrName in timeSlice) {
         const buffer = this.#instruments[instrName];
         if (buffer) {
           const node = new AudioBufferSourceNode(this.#audioContext!, { buffer });
           node.connect(this.#audioContext!.destination);
-          node.start(this.#nextClickTime);
+          node.start(this.#nextTickTime);
         }
       }
     }
-    this.#nextClick++;
-    if (this.#nextClick >= this.score.length) {
-      this.#nextClick = 0;
+    this.#nextTick++;
+    if (this.#nextTick >= this.score.length) {
+      this.#nextTick = 0;
     }
-    this.#nextClickTime += this.clickDuration;
-    const nextClickInterval = 1000 * (this.#nextClickTime - this.#audioContext!.currentTime - extraLatency);
+    this.#nextTickTime += this.tickDuration;
+    const nextTickInterval = 1000 * (this.#nextTickTime - this.#audioContext!.currentTime - extraLatency);
     this.#timer = window.setTimeout(
-      () => { this.#playNextClick() },
-      nextClickInterval,
+      () => { this.#playNextTick() },
+      nextTickInterval,
     );
   }
 }

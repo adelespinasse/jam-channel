@@ -5,6 +5,14 @@
   position: relative;
 }
 
+.column-header {
+  height: 32px;
+  color: transparent;
+}
+.column-header.current {
+  color: #000;
+}
+
 .cell {
   width: 32px;
   height: 32px;
@@ -18,7 +26,8 @@
   height: 100%;
   top: 0;
   left: 0;
-  background-color: #58f;
+  background-color: #54f;
+  animation-duration: 500ms;
   /* width: 18px;
   height: 18px;
   border: 1px solid #000;
@@ -28,6 +37,15 @@
 }
 .note:hover {
   background-color: #acf;
+}
+@keyframes hit {
+  from {
+    background-color: #f0b;
+  }
+
+  to {
+    background-color: #54f;
+  }
 }
 
 .rest {
