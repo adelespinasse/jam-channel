@@ -17,3 +17,17 @@ export const defaultChannelSettings: ChannelSettings = {
   beatsPerBar: 4,
   numBars: 2,
 };
+
+export const minChannelSettings: ChannelSettings = {
+  beatsPerMinute: 20,
+  ticksPerBeat: 1,
+  beatsPerBar: 1,
+  numBars: 1,
+}
+
+export const maxChannelSettings: ChannelSettings = {
+  beatsPerMinute: 300,
+  ticksPerBeat: 8,
+  beatsPerBar: 8,
+  numBars: 8,
+};

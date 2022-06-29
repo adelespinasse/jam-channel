@@ -10,6 +10,8 @@ import {
   ChannelSettingName,
   ChannelSettings,
   defaultChannelSettings,
+  maxChannelSettings,
+  minChannelSettings,
   TimeSlice,
 } from './types';
 
@@ -217,16 +219,14 @@ export default function ChannelPage() {
   const numericSetting = (
     label: string,
     property: ChannelSettingName,
-    min: number,
-    max: number,
   ) => {
     return (
       <span className="m-1 whitespace-nowrap">
         { label }:&nbsp;
         <input
           type="number"
-          min={min}
-          max={max}
+          min={minChannelSettings[property]}
+          max={maxChannelSettings[property]}
           value={settings[property]}
           onChange={setSetting(property)}
           className="border border-slate-400 w-14"
@@ -251,10 +251,10 @@ export default function ChannelPage() {
         <Link to="/" className="m-1">← Home</Link>
         <button onClick={() => player.play()} className="m-1">Play</button>
         <button onClick={() => player.pause()} className="m-1">Pause</button>
-        { numericSetting('Beats per minute', 'beatsPerMinute', 40, 300) }
-        { numericSetting('Ticks per beat', 'ticksPerBeat', 1, 6) }
-        { numericSetting('Beats per bar', 'beatsPerBar', 1, 7) }
-        { numericSetting('# Bars', 'numBars', 1, 8) }
+        { numericSetting('Beats per minute', 'beatsPerMinute') }
+        { numericSetting('Ticks per beat', 'ticksPerBeat') }
+        { numericSetting('Beats per bar', 'beatsPerBar') }
+        { numericSetting('# Bars', 'numBars') }
       </h2>
       <table className="score">
         <tbody>

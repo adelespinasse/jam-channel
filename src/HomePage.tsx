@@ -1,11 +1,11 @@
 import React from 'react';
-import { collection, addDoc, doc, serverTimestamp, setDoc  } from "firebase/firestore";
+import { collection, addDoc, doc, serverTimestamp, writeBatch  } from "firebase/firestore";
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { useNavigate } from 'react-router-dom';
 import { getAuth } from 'firebase/auth';
 
 import { db } from './fb';
-import { defaultChannelSettings } from './types';
+import { defaultChannelSettings, maxChannelSettings } from './types';
 
 const auth = getAuth();
 
@@ -22,10 +22,21 @@ export default function HomePage() {
         createdBy: user?.uid,
       },
     );
-    await setDoc(
+    const batch = writeBatch(db);
+    batch.set(
       doc(db, `channels/${docRef.id}/misc/settings`),
       defaultChannelSettings,
     );
+    for (let bar = 0; bar < maxChannelSettings.numBars; bar++) {
+      for (let beat = 0; beat < maxChannelSettings.beatsPerBar; beat++ ) {
+        const timeId = `${bar}${beat}${0}`;
+        batch.set(
+          doc(db, `channels/${docRef.id}/score/${timeId}`),
+          { J: {} },
+        );
+      }
+    }
+    await batch.commit();
     navigate(`/${docRef.id}`);
   };
 
