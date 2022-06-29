@@ -5,13 +5,15 @@ export type TimeSlice = { [instrument: string]: NoteProperties };
 export type ChannelSettings = {
   beatsPerMinute: number,
   ticksPerBeat: number,
-  beatsPerMeasure: number,
-  numMeasures: number,
+  beatsPerBar: number,
+  numBars: number,
 };
+
+export type ChannelSettingName = keyof ChannelSettings;
 
 export const defaultChannelSettings: ChannelSettings = {
   beatsPerMinute: 100,
   ticksPerBeat: 4,
-  beatsPerMeasure: 4,
-  numMeasures: 2,
+  beatsPerBar: 4,
+  numBars: 2,
 };

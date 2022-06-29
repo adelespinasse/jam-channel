@@ -6,20 +6,27 @@ import { collection, deleteField, doc, DocumentReference, setDoc } from "firebas
 import './App.css';
 import { db } from './fb';
 import { Player } from './player';
-import { ChannelSettings, defaultChannelSettings, TimeSlice } from './types';
+import {
+  ChannelSettingName,
+  ChannelSettings,
+  defaultChannelSettings,
+  TimeSlice,
+} from './types';
 
-const instruments: Array<string> = [
-  'A',
-  'B',
-  'C',
-  'D',
-  'E',
-  'F',
-  'G',
-  'H',
-  'I',
-  'J',
-];
+const instrumentNames: { [name: string]: string } = {
+  'A': 'Snap',
+  'B': 'Cowbell',
+  'C': 'Splash',
+  'D': 'Hat',
+  'E': 'High Tom',
+  'F': 'Med Tom',
+  'G': 'Low Tom',
+  'H': 'Snare',
+  'I': 'Soft Snare',
+  'J': 'Kick',
+};
+
+const instruments: Array<string> = Object.keys(instrumentNames);
 
 function idForTimeIndex(timeIndex: number) {
   return String(timeIndex).padStart(5, '00000');
@@ -100,13 +107,14 @@ export default function ChannelPage() {
     );
   }
 
+  const settings = { ...defaultChannelSettings, ...channelSettings };
   const {
     beatsPerMinute,
     ticksPerBeat,
-    beatsPerMeasure,
-    numMeasures,
-  } = { ...defaultChannelSettings, ...channelSettings };
-  const ticksInScore = ticksPerBeat * beatsPerMeasure * numMeasures;
+    beatsPerBar,
+    numBars,
+  } = settings;
+  const ticksInScore = ticksPerBeat * beatsPerBar * numBars;
   const tickDuration = 60 / beatsPerMinute / ticksPerBeat;
   const score: Array<TimeSlice | null> = new Array(ticksInScore);
   score.fill(null);
@@ -161,44 +169,37 @@ export default function ChannelPage() {
     );
   };
 
+  const numericSetting = (
+    label: string,
+    property: ChannelSettingName,
+    min: number,
+    max: number,
+  ) => {
+    return (
+      <span className="m-1 whitespace-nowrap">
+        { label }:&nbsp;
+        <input
+          type="number"
+          min={min}
+          max={max}
+          value={settings[property]}
+          onChange={setSetting(property)}
+          className="border border-slate-400"
+        />
+      </span>
+    );
+  };
+
   return (
     <div>
-      <h2>
-        <Link to="/">Home</Link>
-        <button onClick={() => player.play()}>Play</button>
-        <button onClick={() => player.pause()}>Pause</button>
-        Beats per minute:
-        <input
-          type="number"
-          min={40}
-          max={300}
-          value={beatsPerMinute}
-          onChange={setSetting('beatsPerMinute')}
-        />
-        Ticks per beat:
-        <input
-          type="number"
-          min={1}
-          max={6}
-          value={ticksPerBeat}
-          onChange={setSetting('ticksPerBeat')}
-        />
-        Beats per bar:
-        <input
-          type="number"
-          min={2}
-          max={7}
-          value={beatsPerMeasure}
-          onChange={setSetting('beatsPerMeasure')}
-        />
-        # Bars:
-        <input
-          type="number"
-          min={1}
-          max={8}
-          value={numMeasures}
-          onChange={setSetting('numMeasures')}
-        />
+      <h2 className="m-2">
+        <Link to="/" className="m-1">← Home</Link>
+        <button onClick={() => player.play()} className="m-1">Play</button>
+        <button onClick={() => player.pause()} className="m-1">Pause</button>
+        { numericSetting('Beats per minute', 'beatsPerMinute', 40, 300) }
+        { numericSetting('Ticks per beat', 'ticksPerBeat', 1, 6) }
+        { numericSetting('Beats per bar', 'beatsPerBar', 1, 7) }
+        { numericSetting('# Bars', 'numBars', 1, 8) }
       </h2>
       <table className="score">
         <tbody>
@@ -211,6 +212,7 @@ export default function ChannelPage() {
           </tr>
           { instruments.map((instrument) => (
             <tr key={instrument}>
+              <td className="instrument">{ instrumentNames[instrument] }</td>
               { score.map((timeSlice, timeIndex) => (
                 <td className="cell" key={timeIndex}>
                   { noteOrRest(timeSlice, instrument, timeIndex) }
@@ -220,6 +222,9 @@ export default function ChannelPage() {
           ))}
         </tbody>
       </table>
+      <h2 className="m-5">
+        To collaborate, copy and send the URL.
+      </h2>
     </div>
   );
 }

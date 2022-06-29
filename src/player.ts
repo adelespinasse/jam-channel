@@ -14,14 +14,21 @@ export class Player {
   #timer: number;
 
   constructor(instruments: Array<string>) {
-    console.log('Player constructor');
     this.score = [{}];
+    this.tickDuration = 1;
     this.#nextTickTime = 0;
     this.#nextTick = 0;
-    this.tickDuration = 60/440;
     this.#instruments = {};
     this.#instrumentBuffers = {};
     for (const instrName of instruments) {
+      // We want to start the fetching of the instrument samples right away,
+      // without waiting for the audio context, which is created the first time
+      // play() is called. But that might happen before or after all of the
+      // samples are fetched. And the AudioBuffer objects have to be created
+      // from the audio context. So what we do here is just save an array of
+      // Promises that resolve to ArrayBuffers of the raw data; when
+      // initializing the audio context, we then chain the AudioBuffer creation
+      // onto those Promises.
       this.#instrumentBuffers[instrName] = fetch(`/sounds/${instrName}.flac`)
         .then((response) => response.arrayBuffer());
     }
@@ -33,7 +40,6 @@ export class Player {
       await this.#audioContext.resume();
       return;
     }
-    console.log('Player initializing');
     this.#audioContext = new AudioContext();
     this.#instruments = Object.fromEntries(
       await Promise.all(
@@ -47,10 +53,7 @@ export class Player {
 
   async play() {
     await this.#init();
-    console.log(this.#audioContext!.currentTime);
     this.#nextTickTime = this.#audioContext!.currentTime + extraLatency;
-    console.log(this.#nextTickTime);
-    console.log(this.score[this.#nextTick]);
     this.#playNextTick();
   }
 
@@ -63,7 +66,6 @@ export class Player {
   }
 
   dispose() {
-    console.log('Player dispose');
     this.pause();
     this.#audioContext?.close();
   }

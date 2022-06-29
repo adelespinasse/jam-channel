@@ -20,6 +20,11 @@
   position: relative;
 }
 
+.instrument {
+  text-align: right;
+  padding: 0 5px;
+}
+
 .note {
   position: absolute;
   width: 100%;
@@ -28,12 +33,6 @@
   left: 0;
   background-color: #54f;
   animation-duration: 500ms;
-  /* width: 18px;
-  height: 18px;
-  border: 1px solid #000;
-  border-radius: 100px;
-  background-color: #58f;
-  position: absolute; */
 }
 .note:hover {
   background-color: #acf;
