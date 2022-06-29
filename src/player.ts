@@ -5,6 +5,7 @@ const extraLatency = 0.2;
 export class Player {
   score: Array<TimeSlice | null>;
   timeCallback?: (timeIndex: number, timeSlice: TimeSlice | null) => any;
+  #playing: boolean;
   #audioContext?: AudioContext;
   #nextTickTime: number;
   #nextTick: number;
@@ -16,6 +17,7 @@ export class Player {
   constructor(instruments: Array<string>) {
     this.score = [{}];
     this.tickDuration = 1;
+    this.#playing = false;
     this.#nextTickTime = 0;
     this.#nextTick = 0;
     this.#instruments = {};
@@ -52,12 +54,18 @@ export class Player {
   }
 
   async play() {
+    if (this.#playing)
+      return;
+    this.#playing = true;
     await this.#init();
     this.#nextTickTime = this.#audioContext!.currentTime + extraLatency;
     this.#playNextTick();
   }
 
   pause() {
+    if (!this.#playing)
+      return;
+    this.#playing = false;
     this.#audioContext?.suspend();
     if (this.#timer) {
       clearInterval(this.#timer);

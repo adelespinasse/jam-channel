@@ -114,7 +114,8 @@ export default function ChannelPage() {
     beatsPerBar,
     numBars,
   } = settings;
-  const ticksInScore = ticksPerBeat * beatsPerBar * numBars;
+  const ticksPerBar = ticksPerBeat * beatsPerBar;
+  const ticksInScore = ticksPerBar * numBars;
   const tickDuration = 60 / beatsPerMinute / ticksPerBeat;
   const score: Array<TimeSlice | null> = new Array(ticksInScore);
   score.fill(null);
@@ -184,11 +185,21 @@ export default function ChannelPage() {
           max={max}
           value={settings[property]}
           onChange={setSetting(property)}
-          className="border border-slate-400"
+          className="border border-slate-400 w-14"
         />
       </span>
     );
   };
+
+  const cellClass = (timeIndex: number) => {
+    if (timeIndex % ticksPerBar === 0) {
+      return 'cell bar';
+    }
+    if (timeIndex % ticksPerBeat === 0) {
+      return 'cell beat';
+    }
+    return 'cell';
+  }
 
   return (
     <div>
@@ -204,6 +215,7 @@ export default function ChannelPage() {
       <table className="score">
         <tbody>
           <tr>
+            <td />
             { score.map((timeSlice, timeIndex) => (
               <th key={timeIndex} id={`header-${timeIndex}`} className="column-header">
                 ▼
@@ -214,7 +226,7 @@ export default function ChannelPage() {
             <tr key={instrument}>
               <td className="instrument">{ instrumentNames[instrument] }</td>
               { score.map((timeSlice, timeIndex) => (
-                <td className="cell" key={timeIndex}>
+                <td className={cellClass(timeIndex)} key={timeIndex}>
                   { noteOrRest(timeSlice, instrument, timeIndex) }
                 </td>
               )) }
