@@ -28,54 +28,47 @@ const instrumentNames: { [name: string]: string } = {
 
 const instruments: Array<string> = Object.keys(instrumentNames);
 
-function idForTimeIndex(timeIndex: number) {
-  return String(timeIndex).padStart(5, '00000');
-}
-
-function refForTimeSlice(channelId: string, timeIndex: number) {
-  return doc(db, `channels/${channelId}/score/${idForTimeIndex(timeIndex)}`);
-}
-
 type NoteProps = {
   channelId: string,
   instrument: string,
   timeIndex: number,
+  deleteNoteCallback: (instrument: string, timeIndex: number) => any,
 };
 
-function Note({ channelId, instrument, timeIndex }: NoteProps) {
-
-  const deleteNote = () => {
-    setDoc(
-      refForTimeSlice(channelId, timeIndex),
-      { [instrument]: deleteField() },
-      { merge: true },
-    );
-  };
+function Note({
+  channelId,
+  instrument,
+  timeIndex,
+  deleteNoteCallback,
+}: NoteProps) {
 
   return (
     <div
       id={`${instrument}-${timeIndex}`}
       className="note"
-      onClick={deleteNote}
+      onClick={() => { deleteNoteCallback(instrument, timeIndex); }}
     />
   );
 }
 
-function Rest({ channelId, instrument, timeIndex }: NoteProps) {
+type RestProps = {
+  channelId: string,
+  instrument: string,
+  timeIndex: number,
+  addNoteCallback: (instrument: string, timeIndex: number) => any,
+};
 
-  const addNote = () => {
-    setDoc(
-      refForTimeSlice(channelId, timeIndex),
-      { [instrument]: {} },
-      { merge: true },
-    );
-  };
-
+function Rest({
+  channelId,
+  instrument,
+  timeIndex,
+  addNoteCallback,
+}: RestProps) {
   return (
     <div
       id={`${instrument}-${timeIndex}`}
       className="rest"
-      onClick={addNote}
+      onClick={() => { addNoteCallback(instrument, timeIndex); }}
     />
   );
 }
@@ -117,11 +110,52 @@ export default function ChannelPage() {
   const ticksPerBar = ticksPerBeat * beatsPerBar;
   const ticksInScore = ticksPerBar * numBars;
   const tickDuration = 60 / beatsPerMinute / ticksPerBeat;
+
+  const timeIdToIndex = (id: string) => {
+    const bar = Number(id[0]);
+    if (bar >= numBars)
+      return -1;
+    const beat = Number(id[1]);
+    if (beat >= beatsPerBar)
+      return -1;
+    const tick = Number(id[2]);
+    if (tick >= ticksPerBeat)
+      return -1;
+    return bar * ticksPerBar + beat * ticksPerBeat + tick;
+  };
+
+  const timeIndexToId = (index: number) => {
+    const bar = Math.floor(index / ticksPerBar);
+    const beat = Math.floor((index - bar * ticksPerBar) / ticksPerBeat);
+    const tick = index % ticksPerBeat;
+    return `${bar}${beat}${tick}`;
+  };
+
+  function refForTimeSlice(channelId: string, timeIndex: number) {
+    return doc(db, `channels/${channelId}/score/${timeIndexToId(timeIndex)}`);
+  }
+
+  const deleteNote = (instrument: string, timeIndex: number) => {
+    setDoc(
+      refForTimeSlice(channelId, timeIndex),
+      { [instrument]: deleteField() },
+      { merge: true },
+    );
+  };
+
+  const addNote = (instrument: string, timeIndex: number) => {
+    setDoc(
+      refForTimeSlice(channelId, timeIndex),
+      { [instrument]: {} },
+      { merge: true },
+    );
+  };
+
   const score: Array<TimeSlice | null> = new Array(ticksInScore);
   score.fill(null);
   for (const timeSlice of timeSlices.docs) {
-    const index = Number(timeSlice.id);
-    if (index < ticksInScore)
+    const index = timeIdToIndex(timeSlice.id);
+    if (index >= 0)
       score[index] = timeSlice.data();
   }
   player.score = score;
@@ -154,11 +188,21 @@ export default function ChannelPage() {
     const noteProps = timeSlice?.[instrument];
     if (!noteProps) {
       return (
-        <Rest channelId={channelId} instrument={instrument} timeIndex={timeIndex} />
+        <Rest
+          channelId={channelId}
+          instrument={instrument}
+          timeIndex={timeIndex}
+          addNoteCallback={addNote}
+        />
       );
     }
     return (
-      <Note channelId={channelId} instrument={instrument} timeIndex={timeIndex} />
+      <Note
+        channelId={channelId}
+        instrument={instrument}
+        timeIndex={timeIndex}
+        deleteNoteCallback={deleteNote}
+      />
     );
   };
 
@@ -235,7 +279,7 @@ export default function ChannelPage() {
         </tbody>
       </table>
       <h2 className="m-5">
-        To collaborate, copy and send the URL.
+        To collaborate, copy and share the URL.
       </h2>
     </div>
   );

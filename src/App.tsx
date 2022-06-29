@@ -22,7 +22,6 @@ export default function App() {
     // and technically anyone can read/write within a channel, but they have no
     // way of finding an existing channel unless someone shares the link with
     // them.
-    console.log('auth:', user, loading, error);
     if (!user && !loading && !error) {
       signInAnonymously(auth);
     }
