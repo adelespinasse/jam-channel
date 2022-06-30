@@ -1,12 +1,13 @@
 import React, { ChangeEvent, useEffect, useMemo, useRef } from 'react'
 import { Link, useParams } from 'react-router-dom';
 import { useCollection, useDocumentData } from 'react-firebase-hooks/firestore';
-import { collection, deleteField, doc, DocumentReference, setDoc } from "firebase/firestore";
+import { collection, deleteField, doc, DocumentReference, setDoc } from 'firebase/firestore';
 
 import './App.css';
 import { db } from './fb';
 import { Player } from './player';
 import {
+  ChannelDoc,
   ChannelSettingName,
   ChannelSettings,
   defaultChannelSettings,
@@ -77,16 +78,18 @@ function Rest({
 
 export default function ChannelPage() {
   const channelId: string = useParams().channelId!;
-  const settingsRef = doc(db, `channels/${channelId}/misc/settings`) as DocumentReference<ChannelSettings>;
-  const [channelSettings, settingsLoading, settingsError] = useDocumentData<Partial<ChannelSettings>>(
-    settingsRef,
+  const channelRef = doc(db, `channels/${channelId}`) as DocumentReference<ChannelDoc>;
+  const [channelDoc, channelLoading, channelError] = useDocumentData<ChannelDoc>(
+    channelRef,
   );
-  const [timeSlices, loading, error] = useCollection<TimeSlice>(collection(db, `channels/${channelId}/score`));
+  const [timeSlices, scoreLoading, scoreError] = useCollection<TimeSlice>(
+    collection(db, `channels/${channelId}/score`),
+  );
   const player = useMemo(() => (new Player(instruments)), []);
   useEffect(() => () => { player.dispose() }, [player]);
   const currentHeader = useRef<HTMLElement>();
 
-  if (error || settingsError) {
+  if (scoreError || channelError) {
     return (
       <div className="text-center">
         <h2>Channel not found</h2>
@@ -94,7 +97,7 @@ export default function ChannelPage() {
       </div>
     );
   }
-  if (loading || !timeSlices || settingsLoading) {
+  if (scoreLoading || !timeSlices || channelLoading || !channelDoc) {
     return (
       <div className="text-center">
         <h2>Loading...</h2>
@@ -102,7 +105,10 @@ export default function ChannelPage() {
     );
   }
 
-  const settings = { ...defaultChannelSettings, ...channelSettings };
+  const settings: Required<ChannelSettings> = {
+    ...defaultChannelSettings,
+    ...channelDoc.settings,
+  };
   const {
     beatsPerMinute,
     ticksPerBeat,
@@ -210,8 +216,10 @@ export default function ChannelPage() {
 
   const setSetting = (settingName: string) => (event: ChangeEvent<HTMLInputElement>) => {
     setDoc(
-      settingsRef,
-      { [settingName]: Number(event.target.value) },
+      channelRef,
+      {
+        settings: { [settingName]: Number(event.target.value) },
+      },
       { merge: true },
     );
   };
@@ -235,6 +243,14 @@ export default function ChannelPage() {
     );
   };
 
+  const changeName = (event: ChangeEvent<HTMLInputElement>) => {
+    setDoc(
+      channelRef,
+      { name: event.target.value },
+      { merge: true },
+    );
+  };
+
   const cellClass = (timeIndex: number) => {
     if (timeIndex % ticksPerBar === 0) {
       return 'cell bar';
@@ -249,6 +265,16 @@ export default function ChannelPage() {
     <div>
       <h2 className="m-2">
         <Link to="/" className="m-1">← Home</Link>
+        Channel name:
+        <input
+          type="text"
+          value={channelDoc.name || ''}
+          placeholder="Enter name"
+          onChange={changeName}
+          className="border border-slate-400 m-1"
+        />
+      </h2>
+      <h2 className="m-2">
         <button onClick={() => player.play()} className="m-1">Play</button>
         <button onClick={() => player.pause()} className="m-1">Pause</button>
         { numericSetting('Beats per minute', 'beatsPerMinute') }

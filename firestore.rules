@@ -5,11 +5,23 @@ service cloud.firestore {
 
       // Anyone (if authed; we use anonymous auth) can create a new channel,
       // assuming they play by the rules and save their UID and creation time.
-      // But no one can find or read an existing channel unless the creator shares
-      // it with them.
       allow create: if request.auth != null
         && request.resource.data.createdBy == request.auth.uid
         && request.resource.data.createdAt == request.time;
+
+      // Anyone can read a channel document if they know its ID, but no one can
+      // run a query in the collection to find them.
+      allow get: if request.auth != null;
+
+      // A user can only query for the channels they created.
+      allow list: if request.auth != null
+        && request.auth.uid == resource.data.createdBy;
+
+      // Anyone can update the channel document as long as they don't
+      // change createdBy and createdAt. This lets them update the name and settings.
+      allow update: if request.auth != null
+        && request.resource.data.createdBy == resource.data.createdBy
+        && request.resource.data.createdAt == resource.data.createdAt;
 
       // Anyone (if authed) can read/write any subcollection if the channel exists.
       match /{subcoll}/{anything=**} {

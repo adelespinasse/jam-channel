@@ -6,6 +6,7 @@ import { getAuth } from 'firebase/auth';
 
 import { db } from './fb';
 import { defaultChannelSettings, maxChannelSettings } from './types';
+import ChannelList from './ChannelList';
 
 const auth = getAuth();
 
@@ -17,16 +18,13 @@ export default function HomePage() {
     const docRef = await addDoc(
       collection(db, "channels"),
       {
-        // These properties are required by the security rules.
         createdAt: serverTimestamp(),
         createdBy: user?.uid,
+        name: `Rename Me (${new Date().toLocaleString()})`,
+        settings: defaultChannelSettings,
       },
     );
     const batch = writeBatch(db);
-    batch.set(
-      doc(db, `channels/${docRef.id}/misc/settings`),
-      defaultChannelSettings,
-    );
     for (let bar = 0; bar < maxChannelSettings.numBars; bar++) {
       for (let beat = 0; beat < maxChannelSettings.beatsPerBar; beat++ ) {
         const timeId = `${bar}${beat}${0}`;
@@ -40,11 +38,15 @@ export default function HomePage() {
     navigate(`/${docRef.id}`);
   };
 
+  if (!user)
+    return null;
+
   return (
     <div className="text-center">
       <h1 className="mt-20">JamChannel</h1>
       <h2 className="mt-5">Collaborative rhythm machine</h2>
       <button onClick={newChannel} className="mt-10">Create Channel</button>
+      <ChannelList user={user} />
     </div>
   );
 }
