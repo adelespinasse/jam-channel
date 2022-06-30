@@ -90,6 +90,7 @@ export default function ChannelPage() {
   const currentHeader = useRef<HTMLElement>();
 
   if (scoreError || channelError) {
+    console.log(scoreError || channelError);
     return (
       <div className="text-center">
         <h2>Channel not found</h2>
