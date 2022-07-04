@@ -43,6 +43,9 @@ export class Player {
       return;
     }
     this.#audioContext = new AudioContext();
+    console.log('Audio context is', this.#audioContext.state);
+    await this.#audioContext.resume();
+    console.log('Audio context is', this.#audioContext.state);
     this.#instruments = Object.fromEntries(
       await Promise.all(
         Object.entries(this.#instrumentBuffers).map(async ([instrName, buf]) => ([
