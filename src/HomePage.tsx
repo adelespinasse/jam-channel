@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { collection, addDoc, doc, serverTimestamp, writeBatch  } from "firebase/firestore";
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { useNavigate } from 'react-router-dom';
@@ -13,33 +13,50 @@ const auth = getAuth();
 export default function HomePage() {
   const [user] = useAuthState(auth);
   const navigate = useNavigate();
+  const [creating, setCreating] = useState(false);
 
   const newChannel = async () => {
-    const docRef = await addDoc(
-      collection(db, "channels"),
-      {
-        createdAt: serverTimestamp(),
-        createdBy: user?.uid,
-        name: `Rename Me (${new Date().toLocaleString()})`,
-        settings: defaultChannelSettings,
-      },
-    );
-    const batch = writeBatch(db);
-    for (let bar = 0; bar < maxChannelSettings.numBars; bar++) {
-      for (let beat = 0; beat < maxChannelSettings.beatsPerBar; beat++ ) {
-        const timeId = `${bar}${beat}${0}`;
-        batch.set(
-          doc(db, `channels/${docRef.id}/score/${timeId}`),
-          { J: {} },
-        );
+    setCreating(true);
+    try {
+      const docRef = await addDoc(
+        collection(db, "channels"),
+        {
+          createdAt: serverTimestamp(),
+          createdBy: user?.uid,
+          name: 'Rename Me',
+          settings: defaultChannelSettings,
+        },
+      );
+      const batch = writeBatch(db);
+      for (let bar = 0; bar < maxChannelSettings.numBars; bar++) {
+        for (let beat = 0; beat < maxChannelSettings.beatsPerBar; beat++ ) {
+          const timeId = `${bar}${beat}${0}`;
+          batch.set(
+            doc(db, `channels/${docRef.id}/score/${timeId}`),
+            { J: {} },
+          );
+        }
       }
+      await batch.commit();
+      navigate(`/${docRef.id}`);
+    } catch (error) {
+      console.log(error);
+      window.alert('Something went wrong.');
+    } finally {
+      setCreating(false);
     }
-    await batch.commit();
-    navigate(`/${docRef.id}`);
   };
 
   if (!user)
     return null;
+
+  if (creating) {
+    return (
+      <div className="text-center">
+        <h2>Creating new channel...</h2>
+      </div>
+    );
+  }
 
   return (
     <div className="text-center">

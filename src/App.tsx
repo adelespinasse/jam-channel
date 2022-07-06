@@ -38,7 +38,7 @@ export default function App() {
   if (loading || !user) {
     return (
       <div className="text-center">
-        <h2>Logging In...</h2>
+        <h2>Loading...</h2>
       </div>
     );
   }

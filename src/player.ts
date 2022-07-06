@@ -1,6 +1,6 @@
 import { TimeSlice } from './types';
 
-const extraLatency = 0.2;
+const extraLatency = 0.1;
 
 export class Player {
   score: Array<TimeSlice | null>;
@@ -43,9 +43,9 @@ export class Player {
       return;
     }
     this.#audioContext = new AudioContext();
-    console.log('Audio context is', this.#audioContext.state);
+    // iOS starts the AudioContext in suspended mode (even if it's started by a
+    // user action), so we have to resume here.
     await this.#audioContext.resume();
-    console.log('Audio context is', this.#audioContext.state);
     this.#instruments = Object.fromEntries(
       await Promise.all(
         Object.entries(this.#instrumentBuffers).map(async ([instrName, buf]) => ([
