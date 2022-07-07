@@ -1,10 +1,10 @@
 import React, { useEffect } from 'react';
 import {
   BrowserRouter,
-  Routes,
   Route,
-} from "react-router-dom";
-import { getAuth, signInAnonymously,  } from 'firebase/auth';
+  Routes,
+} from 'react-router-dom';
+import { getAuth, signInAnonymously } from 'firebase/auth';
 import { useAuthState } from 'react-firebase-hooks/auth';
 
 import HomePage from './HomePage';
@@ -12,6 +12,8 @@ import ChannelPage from './ChannelPage';
 
 const auth = getAuth();
 
+// Main app component. This logs the user in and routes to different page
+// components depending on the URL path.
 export default function App() {
   const [user, loading, error] = useAuthState(auth);
 

@@ -33,7 +33,7 @@ export default function ChannelList({
   if (docs.empty) {
     return (
       <h3 className="m-10">You haven&apos;t created any channels yet.</h3>
-    )
+    );
   }
 
   return (

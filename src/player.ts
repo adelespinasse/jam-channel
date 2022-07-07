@@ -4,7 +4,7 @@ const extraLatency = 0.1;
 
 export class Player {
   score: Array<TimeSlice | null>;
-  timeCallback?: (timeIndex: number, timeSlice: TimeSlice | null) => any;
+  timeCallback?: (timeIndex: number, timeSlice: TimeSlice | null) => void;
   #playing: boolean;
   #audioContext?: AudioContext;
   #nextTickTime: number;
@@ -107,9 +107,10 @@ export class Player {
       this.#nextTick = 0;
     }
     this.#nextTickTime += this.tickDuration;
-    const nextTickInterval = 1000 * (this.#nextTickTime - this.#audioContext!.currentTime - extraLatency);
+    const nextTickInterval = 1000
+      * (this.#nextTickTime - this.#audioContext!.currentTime - extraLatency);
     this.#timer = window.setTimeout(
-      () => { this.#playNextTick() },
+      () => { this.#playNextTick(); },
       nextTickInterval,
     );
   }

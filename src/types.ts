@@ -5,7 +5,7 @@ import { Timestamp } from 'firebase/firestore';
 
 // Properties that a note might have. Currently there aren't any, but it could
 // someday include velocity/volume and other expressive parameters.
-export type NoteProperties = {};
+export type NoteProperties = Record<string, never>;
 
 // Represents the notes to be played at a particular time. There is a property
 // for each note to be played. The key is an instrument ID (a capital letter
@@ -42,7 +42,7 @@ export const minChannelSettings: Required<ChannelSettings> = {
   ticksPerBeat: 1,
   beatsPerBar: 1,
   numBars: 1,
-}
+};
 
 // The maximum values for each property of ChannelSettings.
 export const maxChannelSettings: Required<ChannelSettings> = {

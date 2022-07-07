@@ -8,7 +8,7 @@ import { instruments, instrumentNames } from './instruments';
 type NoteProps = {
   instrument: string,
   timeIndex: number,
-  deleteNoteCallback: (instrument: string, timeIndex: number) => any,
+  deleteNoteCallback: (instrument: string, timeIndex: number) => void,
 };
 
 function Note({
@@ -16,7 +16,6 @@ function Note({
   timeIndex,
   deleteNoteCallback,
 }: NoteProps) {
-
   return (
     <div
       id={`${instrument}-${timeIndex}`}
@@ -29,7 +28,7 @@ function Note({
 type RestProps = {
   instrument: string,
   timeIndex: number,
-  addNoteCallback: (instrument: string, timeIndex: number) => any,
+  addNoteCallback: (instrument: string, timeIndex: number) => void,
 };
 
 function Rest({
@@ -51,8 +50,8 @@ type ScoreGridProps = {
   ticksPerBeat: number,
   beatsPerBar: number,
   numBars: number,
-  deleteNote: (instrument: string, timeIndex: number) => any,
-  addNote: (instrument: string, timeIndex: number) => any,
+  deleteNote: (instrument: string, timeIndex: number) => void,
+  addNote: (instrument: string, timeIndex: number) => void,
   player: Player,
 };
 
@@ -143,7 +142,7 @@ export function ScoreGrid({
       return 'cell beat';
     }
     return 'cell';
-  }
+  };
 
   return (
     <table className="score">

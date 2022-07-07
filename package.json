@@ -24,16 +24,57 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "lint": "eslint --max-warnings 0 src"
   },
   "eslintConfig": {
     "extends": [
       "react-app",
       "react-app/jest",
-      "eslint:recommended",
+      "eslint:all",
+      "plugin:@typescript-eslint/eslint-recommended",
+      "plugin:@typescript-eslint/recommended",
       "plugin:react/recommended",
       "plugin:react-hooks/recommended"
-    ]
+    ],
+    "rules": {
+      "@typescript-eslint/no-non-null-assertion": "off",
+      "array-element-newline": ["warn", "consistent"],
+      "brace-style": ["warn", "1tbs", { "allowSingleLine": true }],
+      "capitalized-comments": "off",
+      "comma-dangle": ["warn", "always-multiline"],
+      "curly": "off",
+      "func-style": "off",
+      "function-call-argument-newline": ["warn", "consistent"],
+      "function-paren-newline": ["warn", "consistent"],
+      "guard-for-in": "off",
+      "id-length": "off",
+      "indent": ["warn", 2],
+      "line-comment-position": "off",
+      "lines-between-class-members": ["warn", "always", { "exceptAfterSingleLine": true }],
+      "max-len": ["warn", 100],
+      "max-lines-per-function": "off",
+      "max-statements": "off",
+      "multiline-comment-style": ["warn", "separate-lines"],
+      "multiline-ternary": ["warn", "always-multiline"],
+      "no-alert": "off",
+      "no-console": "off",
+      "no-extra-parens": "off",
+      "no-inline-comments": "off",
+      "no-magic-numbers": "off",
+      "no-plusplus": "off",
+      "no-ternary": "off",
+      "nonblock-statement-body-position": ["warn", "below"],
+      "object-curly-spacing": ["warn", "always"],
+      "one-var": "off",
+      "operator-linebreak": ["warn", "before"],
+      "padded-blocks": ["warn", "never"],
+      "quote-props": ["warn", "as-needed"],
+      "quotes": ["warn", "single"],
+      "sort-imports": "off",
+      "sort-keys": "off",
+      "space-before-function-paren": ["warn", {"anonymous": "always", "named": "never", "asyncArrow": "always"}]
+    }
   },
   "browserslist": {
     "production": [

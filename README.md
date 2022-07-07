@@ -1,12 +1,16 @@
 # JamChannel
 
-A web app that demonstrates some techniques for React/Firestore apps.
+A web app that demonstrates some techniques for React/Firestore apps. The
+version in this Git branch uses "Firestore IS the model": no attempt is made to
+wrap the documents fetched from Firestore in a data abstraction, and changes
+are made by directly modifying Firestore in the functions that handle user
+input.
 
-The app functions as a collaborative drum machine. A user can create a
-"channel" which contains a piano-roll-style drum score. The score can be edited
-while it's playing, and most importantly, it can be edited in real time by more
-than one person in different locations, with their changes showing up
-immediately for all other users.
+The app is a collaborative drum machine. A user can create a "channel" which
+contains a piano-roll-style drum score. The score can be edited while it's
+playing, and most importantly, it can be edited in real time by more than one
+person in different locations, with their changes showing up immediately for
+all other users.
 
 A score consists of a number of measures, each of which consists of a number of
 beats, each of which consists of a number of ticks. The ticks define the
@@ -72,7 +76,9 @@ This arrangment provides some nice properties:
 * Similarly, since the name of each property within the TimeSlice corresponds
   to the instrument, there can't be more than one note played by the same
   instrument at the same time. If two users simultaneously create the same
-  note, one simply overwrites the other.
+  note, one simply overwrites the other. (Notes are created and deleted using
+  Firestore `setDoc` operations with `{ merge: true }`, so operations on
+  different notes within the same slice don't interfere with each other.)
 * If there are notes in the second measure, and then you reduce the length of
   the score to one measure, the notes in the second measure are "gone" in that
   they are not played or shown in the UI. There is no need to delete all the
