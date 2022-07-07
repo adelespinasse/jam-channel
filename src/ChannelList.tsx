@@ -11,6 +11,10 @@ type ChannelListProps = {
   user: User,
 };
 
+// Component that shows a list of channels created by the user. Because we use
+// anonymous authentication, the same person on different devices counts as
+// different users. To use the same channel across different devices, they can
+// bookmark it.
 export default function ChannelList({
   user,
 }: ChannelListProps) {

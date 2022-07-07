@@ -1,15 +1,55 @@
 import { TimeSlice } from './types';
 
+// extraLatency is how far ahead of AudioContext.currentTime we try to add note
+// events. There is of course additional system-dependent latency before the
+// sounds at currentTime are actually heard.
 const extraLatency = 0.1;
 
+// Class of object that handles playback of the sounds. Uses the Web Audio API.
+//
+// It is not necessary to understand this code in order to follow the article
+// on React+Firebase data abstractions.
+//
+// The constructor is called with an array of instrument names as its only
+// parameter. Other settings are set by directly assigning values to the
+// object's public properties. These can be changed at any time, including
+// while sound is playing.
+//
+// Steps to produce sound:
+//
+// 1. Construct the object, `player = new Player(instruments)`.
+//
+// 2. Set `player.tickDuration`, the length of each tick in seconds.
+//
+// 3. Set `player.score`. This is an array of TimeSlice objects, representing
+//    every tick in the playable score (array entries may also be null,
+//    representing no notes, equivalent to an empty TimeSlice). The slice at
+//    index n represents sounds to be played at time n*tickDuration (and again
+//    when the loop repeats).
+//
+// 4. Optionally set `player.timeCallback`, a function to be called for each
+//    tick. The Player attempts to call this when the relevant TimeSlice is
+//    heard (i.e., it compensates for audio latency).
+//
+// 5. Call `player.play()`. The first time this is called, it initializes the
+//    AudioContext and starts it running. This should be done in response to a
+//    user input event, such as a click; otherwise the browser may refuse to
+//    play sound.
+//
+// 6. Optionally, repeatedly call `player.pause()` to pause and/or
+//    `player.play()` to start again.
+//
+// 7. When done, call `player.dispose()` to clean up. This is not necessary if
+//    the app is being unloaded (i.e. tab is closed or user navigates away).
 export class Player {
   score: Array<TimeSlice | null>;
+  tickDuration: number;
   timeCallback?: (timeIndex: number, timeSlice: TimeSlice | null) => void;
+
   #playing: boolean;
   #audioContext?: AudioContext;
   #nextTickTime: number;
   #nextTick: number;
-  tickDuration: number;
   #instruments: { [name: string]: AudioBuffer };
   #instrumentBuffers: { [name: string]: Promise<ArrayBuffer> };
   #timer: number;

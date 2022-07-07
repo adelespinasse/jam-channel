@@ -1,10 +1,8 @@
 .score {
-  /* max-width: 90%;
-  margin: 20px;
-  border: 1px solid #888; */
   position: relative;
 }
 
+/* Different background colors for even/odd rows */
 .score tr:nth-child(even) {
   background-color: #eee;
 }
@@ -20,19 +18,23 @@
   color: #000;
 }
 
+/* Light vertical line between ticks */
 .cell {
   width: 32px;
   height: 32px;
   border-left: 1px solid #ccc;
   position: relative;
 }
+/* Heavier vertical line for beats (compared with ticks within a beat) */
 .cell.beat {
   border-left-color: #666;
 }
+/* Even heavier vertical line between bars */
 .cell.bar {
   border-left: 2px solid #555;
 }
 
+/* Cells of leftmost column, showing instrument names */
 .instrument {
   text-align: right;
   padding: 0 5px;
@@ -51,11 +53,11 @@
 .note:hover {
   background-color: #acf;
 }
+/* Animation shown when a note is played */
 @keyframes hit {
   from {
     background-color: #f0b;
   }
-
   to {
     background-color: #54f;
   }

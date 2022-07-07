@@ -10,6 +10,8 @@ import ChannelList from './ChannelList';
 
 const auth = getAuth();
 
+// Home page component. Shows a button to create a channel and a list of
+// channels created by the user.
 export default function HomePage() {
   const [user] = useAuthState(auth);
   const navigate = useNavigate();
@@ -27,6 +29,10 @@ export default function HomePage() {
           settings: defaultChannelSettings,
         },
       );
+      // Create a default score with a kick drum on every beat. Even though the
+      // default score is 2 bars of 4 beats, we fill in every beat up to the
+      // maximum bar length and number of bars, so that the user can change the
+      // settings and still have no empty beats.
       const batch = writeBatch(db);
       for (let bar = 0; bar < maxChannelSettings.numBars; bar++) {
         for (let beat = 0; beat < maxChannelSettings.beatsPerBar; beat++) {
