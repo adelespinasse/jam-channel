@@ -16,7 +16,7 @@ export default function HomePage() {
   const [creating, setCreating] = useState(false);
 
   const newChannel = async () => {
-     setCreating(true);
+    setCreating(true);
     try {
       const docRef = await addDoc(
         collection(db, 'channels'),
