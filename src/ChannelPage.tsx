@@ -143,6 +143,9 @@ export default function ChannelPage() {
   );
 
   const changeName = (event: ChangeEvent<HTMLInputElement>) => {
+    // TODO: It's probably not a good idea to update Firestore on every change
+    // to the name. Something should throttle the changes, definitely updating
+    // no more than once per second, probably less often.
     setDoc(
       channelRef,
       { name: event.target.value },

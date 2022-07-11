@@ -99,6 +99,7 @@
       "no-magic-numbers": "off",
       "no-plusplus": "off",
       "no-ternary": "off",
+      "no-warning-comments": "off",
       "nonblock-statement-body-position": [
         "warn",
         "below"
