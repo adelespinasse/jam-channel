@@ -1,3 +1,5 @@
+Try this app online [here](https://jam-channel.firebaseapp.com/).
+
 # JamChannel
 
 A web app that demonstrates some techniques for React/Firestore apps. The
